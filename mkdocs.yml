@@ -1,0 +1,127 @@
+site_name: AgentMesh 文档
+site_description: 本地优先的 AI Agent 资产互通层 — 完整文档站点
+site_url: https://agentmesh.dev
+repo_url: https://github.com/agentmesh/agentmesh
+repo_name: AgentMesh
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2026 AgentMesh Contributors
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: 切换到暗色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: 切换到亮色模式
+  font:
+    text: Noto Sans SC
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang: zh
+  - tags
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - md_in_html
+  - toc:
+      permalink: true
+      permalink_title: 锚链接
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/agentmesh/agentmesh
+      name: AgentMesh on GitHub
+  version:
+    provider: mike
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+nav:
+  - 首页: index.md
+  - 快速开始: getting-started.md
+  - 使用指南: usage-guide.md
+  - CLI 参考: cli-reference.md
+  - 架构设计:
+      - Overview: design/index.md
+      - Runtime Renderer: design/runtime-renderer.md
+      - CLI Envelope Contract: design/cli-envelope-contract.md
+      - CLI Envelope 审计: design/cli-envelope-state-contract-audit-2026-05-03.md
+      - Update 流程: design/update-flow.md
+      - Rollback: design/rollback.md
+      - Backup History: design/backup-history.md
+      - Package Verify: design/package-verify.md
+      - Prompt Target State: design/prompt-target-state.md
+      - State Reality & Migration: design/state-reality-and-migration.md
+      - Model Mesh: design/model-mesh.md
+      - Refactor Roadmap: design/refactor-roadmap.md
+      - Codebase Roadmap 审计: design/codebase-roadmap-alignment-audit.md
+      - CC Switch 架构: design/ccswitch-milestone-architecture.md
+  - 规格: specs/adapter-contract-v1.md
+  - 安全模型: security/local-api-dashboard-threat-model.md
+  - 审查记录:
+      - Reality Check (2026-05-03): reviews/2026-05-03-agentmesh-reality-check.md
+      - Feature Metrics 审计 (2026-04-29): reviews/2026-04-29-feature-metrics-audit.md
+  - 计划:
+      - M2 Rollback 计划: plans/m2-rollback-plan-implementation.md
+      - 路线图与版本规划: roadmap-version-plan.md
+  - 贡献指南: contributing.md

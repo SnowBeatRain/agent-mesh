@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Canonical dashboard entrypoint. Served by local_api/server.py at / and /dashboard. -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>AgentMesh Dashboard 工作台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="/static/dashboard.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>AgentMesh 工作台 <span class="badge">v0.1.0</span></h1>
+  <nav class="app-tabs" data-role="tabs">
+    <button class="tab active" data-tab="overview">概览</button>
+    <button class="tab" data-tab="commands">命令</button>
+    <button class="tab" data-tab="recipes">操作案例</button>
+    <button class="tab" data-tab="skills">Skills</button>
+  </nav>
+  <div class="search-wrap">
+    <input type="text" id="global-search" class="search-input" placeholder="搜索命令历史…" autocomplete="off" />
+    <div id="search-results" class="search-results hidden"></div>
+  </div>
+</header>
+<main class="app-main">
+  <section class="pane" data-pane="overview">
+    <p>AgentMesh Web 工作台已启动。后端 API 可用。</p>
+    <p>请使用上方标签页切换到「命令」「操作案例」或「Skills」面板。</p>
+  </section>
+  <section class="pane hidden" data-pane="commands">
+    <div id="command-form-root"></div>
+  </section>
+  <section class="pane hidden" data-pane="recipes">
+    <div id="recipe-panel-root"></div>
+  </section>
+  <section class="pane hidden" data-pane="skills">
+    <div id="skills-panel-root"></div>
+  </section>
+</main>
+<footer id="history-panel-root" class="history-footer"></footer>
+<script type="module" src="/static/dashboard.js"></script>
+</body>
+</html>

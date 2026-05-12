@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentmesh"
+version = "0.1.0"
+description = "本地优先的 AI Agent 资产互通层，MVP 聚焦 SkillMesh。"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+license-files = ["LICENSE"]
+authors = [
+  { name = "AgentMesh Contributors" },
+]
+keywords = ["ai-agent", "skills", "claude-code", "codex", "openclaw", "hermes"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+  "typer>=0.12",
+  "pydantic>=2.0",
+  "rich>=13.0",
+  "ruamel.yaml>=0.18",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.4",
+  "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.scripts]
+agentmesh = "agentmesh.cli.main:main"
+am = "agentmesh.cli.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentmesh"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

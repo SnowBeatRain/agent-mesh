@@ -1,0 +1,255 @@
+/* AgentMesh Workstation SPA — Phase C full styles */
+:root {
+  color-scheme: light dark;
+  --bg: #0f172a;
+  --fg: #e2e8f0;
+  --fg-muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --border: #1e293b;
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warn: #f59e0b;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f8fafc;
+    --fg: #0f172a;
+    --fg-muted: #64748b;
+    --accent: #0284c7;
+    --accent-hover: #0369a1;
+    --border: #e2e8f0;
+    --surface: #ffffff;
+    --surface-hover: #f1f5f9;
+    --success: #16a34a;
+    --error: #dc2626;
+    --warn: #d97706;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; font-size: 14px; line-height: 1.5; }
+
+/* ─── Header & Tabs ─────────────────────────────────────────── */
+.app-header { display: flex; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 100; }
+.app-header h1 { font-size: 16px; margin: 0; white-space: nowrap; }
+.badge { padding: 2px 8px; font-size: 11px; background: var(--surface); border-radius: var(--radius-sm); }
+.badge-beginner { background: var(--success); color: #fff; }
+.badge-intermediate { background: var(--warn); color: #000; }
+.badge-advanced { background: var(--error); color: #fff; }
+.badge-warn { background: var(--warn); color: #000; }
+.app-tabs { display: flex; gap: 4px; margin-left: 24px; }
+.tab { padding: 6px 14px; background: transparent; color: var(--fg); border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; transition: all .15s; }
+.tab:hover { background: var(--surface-hover); }
+.tab.active { background: var(--surface); border-color: var(--accent); color: var(--accent); }
+.app-main { padding: 24px; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 200px); }
+.pane { min-height: 200px; }
+.hidden { display: none !important; }
+
+/* ─── Utility Classes ───────────────────────────────────────── */
+.loading { color: var(--fg-muted); font-style: italic; }
+.error { color: var(--error); }
+.empty { color: var(--fg-muted); text-align: center; padding: 24px; }
+
+/* ─── Buttons ───────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); cursor: pointer; font-size: 13px; transition: all .15s; }
+.btn:hover { background: var(--surface-hover); border-color: var(--accent); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-xs { padding: 2px 8px; font-size: 11px; }
+.btn-danger { color: var(--error); border-color: var(--error); }
+.btn-danger:hover { background: var(--error); color: #fff; }
+.btn-action { display: block; width: 100%; margin-bottom: 8px; text-align: left; }
+.btn-toggle { margin-left: auto; }
+
+/* ═══════════════════════════════════════════════════════════════
+   C2: Command Form
+   ═══════════════════════════════════════════════════════════════ */
+.cmd-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.cmd-toolbar select { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); font-size: 13px; min-width: 140px; }
+.cmd-category-select { max-width: 160px; }
+.cmd-schema-select { flex: 1; min-width: 240px; }
+
+.cmd-form-area { margin-bottom: 16px; }
+.cmd-desc { color: var(--fg-muted); margin: 0 0 12px; }
+.cmd-warn { background: rgba(245, 158, 11, .15); border: 1px solid var(--warn); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; font-size: 13px; }
+
+.cmd-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-label { font-size: 13px; font-weight: 500; }
+.form-label .required { color: var(--error); }
+.form-help { font-size: 11px; color: var(--fg-muted); }
+.form-input, .form-select, .form-textarea { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); font-size: 13px; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56, 189, 248, .2); }
+.form-check { width: 18px; height: 18px; accent-color: var(--accent); }
+.form-textarea { resize: vertical; font-family: "SF Mono", "Fira Code", monospace; }
+
+.cmd-textarea-wrap { display: flex; flex-direction: column; gap: 6px; }
+.cmd-textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; resize: vertical; }
+.cmd-textarea:focus { outline: none; border-color: var(--accent); }
+
+.cmd-preview-area { margin-bottom: 12px; }
+.cmd-preview { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow-x: auto; }
+.cmd-preview-label { font-size: 12px; color: var(--fg-muted); white-space: nowrap; }
+.cmd-preview-cmd { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; color: var(--accent); word-break: break-all; }
+.cmd-preview-err { border-color: var(--error); }
+.cmd-preview-err span { color: var(--error); }
+.cmd-preview-warn { font-size: 12px; color: var(--warn); margin-top: 4px; padding-left: 14px; }
+
+.cmd-exec-area { margin-top: 12px; }
+.cmd-exec-wrap { display: flex; align-items: center; gap: 12px; }
+.cmd-result { margin-top: 12px; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.cmd-result-ok { border-color: var(--success); background: rgba(34, 197, 94, .06); }
+.cmd-result-err { border-color: var(--error); background: rgba(239, 68, 68, .06); }
+.cmd-result-output { max-height: 200px; overflow: auto; font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; white-space: pre-wrap; margin: 8px 0 0; padding: 8px; background: var(--bg); border-radius: var(--radius-sm); }
+.cmd-result-error-msg { color: var(--error); font-size: 13px; margin: 6px 0 0; word-break: break-word; }
+
+/* ═══════════════════════════════════════════════════════════════
+   C3: Recipe Panel
+   ═══════════════════════════════════════════════════════════════ */
+.recipe-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; min-height: 400px; }
+@media (max-width: 768px) { .recipe-layout { grid-template-columns: 1fr; } }
+
+.recipe-list { display: flex; flex-direction: column; gap: 8px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
+.recipe-card { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all .15s; }
+.recipe-card:hover { border-color: var(--accent); background: var(--surface-hover); }
+.recipe-card.active { border-color: var(--accent); background: var(--surface); box-shadow: var(--shadow); }
+.recipe-card-title { font-weight: 600; margin-bottom: 4px; }
+.recipe-card-meta { font-size: 12px; color: var(--fg-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.recipe-card-desc { font-size: 12px; color: var(--fg-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.recipe-detail { padding: 0 4px; }
+.recipe-title { margin: 0 0 8px; font-size: 18px; }
+.recipe-desc { color: var(--fg-muted); margin: 0 0 12px; }
+.recipe-prereqs { font-size: 13px; margin-bottom: 12px; padding: 8px 12px; background: var(--surface); border-radius: var(--radius-sm); }
+
+.recipe-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.recipe-step { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); transition: all .2s; }
+.recipe-step.running { border-color: var(--accent); background: rgba(56, 189, 248, .05); }
+.recipe-step.done { border-color: var(--success); background: rgba(34, 197, 94, .05); }
+.recipe-step.failed { border-color: var(--error); background: rgba(239, 68, 68, .05); }
+.recipe-step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.recipe-step-num { font-weight: 700; color: var(--accent); font-size: 13px; }
+.recipe-step-title { font-weight: 500; }
+.recipe-step-desc { font-size: 12px; color: var(--fg-muted); margin-bottom: 6px; }
+.recipe-step-cmd { margin-bottom: 6px; }
+.recipe-step-cmd code { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; color: var(--accent); background: var(--bg); padding: 4px 8px; border-radius: var(--radius-sm); display: inline-block; max-width: 100%; overflow-x: auto; }
+.recipe-step-err { font-size: 12px; color: var(--error); margin-bottom: 6px; }
+.recipe-step-actions { display: flex; align-items: center; gap: 8px; }
+.recipe-step-status { font-size: 13px; font-weight: 600; }
+
+.recipe-batch { display: flex; gap: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+/* ═══════════════════════════════════════════════════════════════
+   C4: Skills Three-Column Panel
+   ═══════════════════════════════════════════════════════════════ */
+.skills-layout { display: grid; grid-template-columns: 200px 1fr 220px; gap: 16px; min-height: 400px; }
+@media (max-width: 900px) { .skills-layout { grid-template-columns: 1fr; } }
+
+.skills-col { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-y: auto; max-height: 600px; }
+.skills-col h4, .skills-col h5 { margin: 0 0 10px; font-size: 14px; }
+
+.skills-col-list { }
+.skills-item { padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; transition: all .15s; word-break: break-all; }
+.skills-item:hover { background: var(--surface-hover); }
+.skills-item.active { background: var(--surface); border-left: 3px solid var(--accent); color: var(--accent); font-weight: 500; }
+
+.skills-col-detail { }
+.skills-info { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.skills-info-row { display: flex; gap: 8px; font-size: 13px; }
+.skills-info-key { color: var(--fg-muted); min-width: 120px; flex-shrink: 0; }
+.skills-info-val { word-break: break-all; }
+.skills-targets { margin-bottom: 12px; }
+.skills-target-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 13px; }
+.skills-target-name { font-weight: 500; }
+.skills-raw { margin-top: 12px; }
+.skills-raw summary { cursor: pointer; font-size: 12px; color: var(--fg-muted); }
+.skills-raw pre { font-size: 11px; max-height: 300px; overflow: auto; background: var(--bg); padding: 8px; border-radius: var(--radius-sm); white-space: pre-wrap; word-break: break-all; }
+
+.skills-col-actions { }
+.skills-diff { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+.diff-pre { font-size: 11px; max-height: 300px; overflow: auto; background: var(--bg); padding: 8px; border-radius: var(--radius-sm); white-space: pre-wrap; }
+
+/* ═══════════════════════════════════════════════════════════════
+   C5: History Footer Panel
+   ═══════════════════════════════════════════════════════════════ */
+.history-footer { border-top: 1px solid var(--border); background: var(--surface); padding: 0; max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.history-footer.has-items { max-height: 320px; padding: 12px 24px; overflow-y: auto; }
+.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; position: sticky; top: 0; background: var(--surface); padding-bottom: 6px; }
+.history-title { font-weight: 600; font-size: 13px; }
+.history-actions { display: flex; gap: 6px; }
+.history-list { display: flex; flex-direction: column; gap: 4px; }
+.history-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; border: 1px solid transparent; }
+.history-row:hover { background: var(--surface-hover); }
+.history-ok { border-left: 3px solid var(--success); }
+.history-err { border-left: 3px solid var(--error); }
+.history-time { color: var(--fg-muted); min-width: 70px; font-size: 11px; }
+.history-cmd { flex: 1; font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-status { font-weight: 700; width: 16px; text-align: center; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   C7: Global Search
+   ═══════════════════════════════════════════════════════════════ */
+.search-wrap { position: relative; margin-left: auto; }
+.search-input { padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); font-size: 13px; width: 220px; transition: width .2s, border-color .2s; }
+.search-input:focus { outline: none; border-color: var(--accent); width: 300px; box-shadow: 0 0 0 2px rgba(56, 189, 248, .15); }
+.search-input::placeholder { color: var(--fg-muted); }
+
+.search-results { position: absolute; top: calc(100% + 6px); right: 0; width: 380px; max-height: 360px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 200; }
+.search-results.hidden { display: none; }
+.search-empty { padding: 16px; text-align: center; color: var(--fg-muted); font-size: 13px; }
+.search-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 12px; transition: background .1s; }
+.search-row:last-child { border-bottom: none; }
+.search-row:hover { background: var(--surface-hover); }
+.search-row-cmd { flex: 1; font-family: "SF Mono", "Fira Code", monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent); }
+.search-row-badge { font-size: 11px; }
+.search-row-time { font-size: 11px; color: var(--fg-muted); white-space: nowrap; }
+
+/* ═══════════════════════════════════════════════════════════════
+   C8: Export Format Selector
+   ═══════════════════════════════════════════════════════════════ */
+.export-format-select { padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); font-size: 12px; cursor: pointer; }
+.export-format-select:focus { outline: none; border-color: var(--accent); }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Skills Panel — 统一同步工作流重构
+   ═══════════════════════════════════════════════════════════════ */
+.skills-toolbar { margin-bottom: 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.skills-toolbar-hint { font-size: 12px; color: var(--fg-muted); margin-bottom: 10px; }
+.skills-toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.skills-hint { font-size: 11px; color: var(--fg-muted); margin: 0 0 10px; line-height: 1.5; }
+
+.skills-agent-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 6px; background: var(--surface); transition: all .15s; }
+.skills-agent-card:hover { border-color: var(--accent); }
+.skills-agent-card.disabled { opacity: .5; }
+.skills-agent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px; }
+.skills-agent-name { font-weight: 600; font-size: 13px; }
+.skills-agent-level { font-size: 10px; padding: 1px 6px; }
+.skills-agent-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.skills-agent-actions .btn { flex: 1; min-width: 70px; font-size: 11px; }
+.skills-agent-actions .btn-xs { flex: 0 0 auto; }
+.skills-agent-batch { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.skills-agent-batch .btn { width: 100%; }
+
+/* Editable command area (shared by toolbar + agent cards) */
+.skills-edit-cmd { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: var(--radius-sm); background: var(--bg); }
+.skills-edit-cmd.hidden { display: none; }
+.skills-edit-input { width: 100%; margin: 6px 0; font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; padding: 6px 8px; }
+.skills-edit-btns { display: flex; gap: 6px; margin-top: 6px; }
+.skills-edit-status { margin-top: 8px; }
+.skills-edit-ok { color: var(--success); font-size: 12px; padding: 4px 0; font-weight: 500; }
+.skills-edit-err { color: var(--error); font-size: 12px; padding: 4px 0; font-weight: 500; word-break: break-word; }
+.skills-edit-output { max-height: 240px; overflow: auto; font-family: "SF Mono", "Fira Code", monospace; font-size: 11px; white-space: pre-wrap; padding: 8px; background: var(--surface); border-radius: var(--radius-sm); margin: 6px 0 0; border: 1px solid var(--border); }
+
+/* Disabled button treatment */
+.btn[disabled], .btn-action[disabled] { opacity: .4; cursor: not-allowed; pointer-events: none; }

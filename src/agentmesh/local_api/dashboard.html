@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<!-- LEGACY: not served by default. The canonical dashboard is static/dashboard.html. -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentMesh Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e1e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #3370ed;
+    --accent-dim: rgba(51,112,237,0.15);
+    --ok: #22c55e;
+    --ok-dim: rgba(34,197,94,0.15);
+    --warn: #f59e0b;
+    --warn-dim: rgba(245,158,11,0.15);
+    --error: #ef4444;
+    --error-dim: rgba(239,68,68,0.15);
+    --info: #3b82f6;
+    --info-dim: rgba(59,130,246,0.15);
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 24px;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  }
+  h1 { font-size: 20px; font-weight: 600; }
+  h1 span { color: var(--accent); }
+  .status-badge {
+    font-size: 12px; padding: 4px 10px; border-radius: 9999px;
+    background: var(--accent-dim); color: var(--accent); font-weight: 500;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .card h2 {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 16px;
+  }
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--text-dim); font-size: 14px; }
+  .stat-value { font-family: var(--mono); font-size: 14px; }
+  .agent-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 8px;
+  }
+  .agent-card:last-child { margin-bottom: 0; }
+  .agent-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .agent-name { font-weight: 600; font-size: 14px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-ok { background: var(--ok); }
+  .dot-no { background: var(--error); }
+  .agent-meta { font-size: 12px; color: var(--text-dim); }
+  .tag {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    margin-right: 4px;
+  }
+  .tag-mode { background: var(--accent-dim); color: var(--accent); }
+  .tag-protected { background: rgba(239,68,68,0.15); color: var(--error); }
+  .skills-list { columns: 2; column-gap: 8px; }
+  .skill-item {
+    font-size: 13px; padding: 4px 8px; margin-bottom: 4px;
+    background: var(--bg); border-radius: 4px; break-inside: avoid;
+  }
+  .refresh-btn {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500;
+  }
+  .refresh-btn:hover { opacity: 0.9; }
+  .loading { text-align: center; padding: 40px; color: var(--text-dim); }
+  .error-msg { color: var(--error); font-size: 13px; }
+  footer {
+    text-align: center; margin-top: 32px; font-size: 12px; color: var(--text-dim);
+  }
+
+  /* === 新增：Metrics 指标卡片 === */
+  .metrics-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .metric-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .metric-value {
+    font-size: 28px; font-weight: 700; font-family: var(--mono);
+    line-height: 1.2;
+  }
+  .metric-label {
+    font-size: 12px; color: var(--text-dim); margin-top: 4px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .metric-ok { color: var(--ok); }
+  .metric-warn { color: var(--warn); }
+  .metric-error { color: var(--error); }
+  .metric-accent { color: var(--accent); }
+
+  /* === 新增：Timeline 时间线 === */
+  .timeline { position: relative; padding-left: 20px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px;
+    width: 2px; background: var(--border);
+  }
+  .timeline-item {
+    position: relative; margin-bottom: 14px; padding-left: 16px;
+  }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -17px; top: 6px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--surface);
+  }
+  .timeline-item.ok::before { background: var(--ok); }
+  .timeline-item.error::before { background: var(--error); }
+  .timeline-item.skip::before { background: var(--text-dim); }
+  .timeline-time {
+    font-size: 11px; color: var(--text-dim); font-family: var(--mono);
+  }
+  .timeline-desc {
+    font-size: 13px; margin-top: 2px;
+  }
+
+  /* === 新增：Audit 审计结果 === */
+  .audit-bar {
+    display: flex; height: 8px; border-radius: 4px; overflow: hidden;
+    margin: 12px 0 8px; background: var(--border);
+  }
+  .audit-bar-seg { transition: width 0.3s; }
+  .audit-bar-seg.secret { background: var(--error); }
+  .audit-bar-seg.script { background: var(--warn); }
+  .audit-bar-seg.ref { background: var(--info); }
+  .audit-legend {
+    display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px;
+  }
+  .audit-legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .audit-legend-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  }
+
+  /* === 高级模式 === */
+  .advanced-options { display: none; }
+  .advanced-options.show { display: block; animation: expandDown 0.3s ease-out; }
+  @keyframes expandDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 500px; } }
+  .option-group {
+    border: 1px dashed var(--border); border-radius: 6px;
+    padding: 12px; margin: 12px 0;
+  }
+  .option-group h4 {
+    font-size: 13px; font-weight: 600; margin-bottom: 10px;
+    color: var(--text-dim);
+  }
+  .option-item {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px; font-size: 13px;
+  }
+  .option-item input[type="radio"],
+  .option-item input[type="checkbox"] {
+    cursor: pointer; accent-color: var(--accent);
+  }
+
+  /* === 冲突处理 === */
+  .conflict-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-bottom: 12px;
+  }
+  .conflict-header { font-weight: 600; margin-bottom: 12px; }
+  .conflict-level {
+    display: inline-block; font-size: 12px; padding: 4px 10px;
+    border-radius: 4px; margin-bottom: 12px;
+  }
+  .conflict-level.high { background: var(--error-dim); color: var(--error); }
+  .conflict-level.medium { background: var(--warn-dim); color: var(--warn); }
+  .conflict-level.low { background: var(--info-dim); color: var(--info); }
+
+  /* === 响应式优化 === */
+  @media (max-width: 768px) {
+    body { padding: 12px; }
+    header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .toast-container { right: 10px; left: 10px; }
+    .toast { min-width: auto; width: auto; }
+    .modal-content { max-width: 90vw; padding: 16px; }
+    .plan-summary { grid-template-columns: 1fr; }
+    .metrics-row { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+  }
+  .audit-badge {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    padding: 4px 12px; border-radius: 9999px; margin-top: 8px;
+  }
+  .audit-badge-ok { background: var(--ok-dim); color: var(--ok); }
+  .audit-badge-blocked { background: var(--error-dim); color: var(--error); }
+
+  /* === 新增：Memory/Model 条目 === */
+  .mesh-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .mesh-item:last-child { margin-bottom: 0; }
+  .mesh-agent { font-weight: 600; color: var(--accent); }
+  .mesh-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .empty-state {
+    text-align: center; padding: 24px; color: var(--text-dim);
+    font-size: 13px;
+  }
+  .full-width { grid-column: 1 / -1; }
+
+  /* === 新增：交互元素样式 === */
+  .action-btn {
+    background: var(--accent); color: white; border: none; border-radius: 6px;
+    padding: 10px 16px; font-size: 14px; cursor: pointer; font-weight: 500;
+    transition: all 0.2s;
+  }
+  .action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .action-btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .action-btn.danger { background: var(--error); }
+  .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); display: none; z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; max-width: 600px; width: 90%;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-size: 18px; font-weight: 600; margin: 0; }
+  .modal-close {
+    background: none; border: none; font-size: 24px; cursor: pointer;
+    color: var(--text-dim); padding: 0; width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 14px; font-weight: 500;
+    margin-bottom: 6px; color: var(--text);
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--surface); color: var(--text);
+    font-size: 14px; font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; }
+  .checkbox-item {
+    display: flex; align-items: center; gap: 6px; font-size: 14px;
+  }
+  .checkbox-item input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--accent);
+  }
+
+  .plan-preview {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin: 16px 0;
+  }
+  .plan-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .plan-stat {
+    text-align: center; padding: 8px;
+    background: var(--bg); border-radius: 6px;
+  }
+  .plan-stat-label { font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+  .plan-stat-value { font-size: 18px; font-weight: 600; }
+
+  .asset-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px; margin-top: 16px;
+  }
+  .asset-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .asset-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .asset-name { font-weight: 600; margin-bottom: 8px; }
+  .asset-meta {
+    font-size: 12px; color: var(--text-dim);
+    display: flex; justify-content: space-between;
+  }
+
+  .wizard-step {
+    display: none;
+  }
+  .wizard-step.active { display: block; }
+  .wizard-progress {
+    display: flex; justify-content: space-between; margin-bottom: 24px;
+  }
+  .wizard-step-indicator {
+    flex: 1; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 0 4px;
+  }
+  .wizard-step-indicator.active { background: var(--accent); }
+  .wizard-step-label {
+    font-size: 12px; color: var(--text-dim); text-align: center;
+    margin-top: 8px;
+  }
+
+  /* === Toast 通知系统 === */
+  .toast-container {
+    position: fixed; top: 20px; right: 20px; z-index: 2000;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .toast {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; min-width: 300px;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .toast.success { border-left: 4px solid var(--ok); }
+  .toast.error { border-left: 4px solid var(--error); }
+  .toast.info { border-left: 4px solid var(--info); }
+  .toast.warning { border-left: 4px solid var(--warn); }
+  @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(400px); opacity: 0; } }
+  .toast.removing { animation: slideOut 0.3s ease-in; }
+  .toast-message { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .toast-icon { font-size: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ <span>AgentMesh</span> Dashboard</h1>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="action-btn" onclick="showWizard()">🚀 一键共享</button>
+    <button class="action-btn secondary" onclick="showAssets()">📦 资产库</button>
+    <span class="status-badge" id="conn-status">Connecting...</span>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<div id="loading" class="loading">Loading data from Local API...</div>
+<div id="content" style="display:none;">
+  <!-- 指标总览 -->
+  <div class="metrics-row" id="metrics-row"></div>
+  <!-- 主网格 -->
+  <div class="grid" id="main-grid"></div>
+</div>
+<footer>AgentMesh Dashboard · Local-only · Read-only API</footer>
+
+<script>
+const API = window.location.origin;
+let registry = '';
+
+async function api(path) {
+  const r = await fetch(API + path);
+  return r.json();
+}
+
+async function loadAll() {
+  const el = document.getElementById('content');
+  const ld = document.getElementById('loading');
+  const cs = document.getElementById('conn-status');
+  ld.style.display = 'block';
+  el.style.display = 'none';
+  try {
+    const [health, overview, agents, skills, history, regStatus, audit, memory, model] = await Promise.all([
+      api('/health'),
+      api('/overview'),
+      api('/agents'),
+      api('/skills'),
+      api('/history'),
+      api('/registry/status'),
+      api('/audit/summary'),
+      api('/memory/status'),
+      api('/model/status'),
+    ]);
+    registry = health.data?.registry || '';
+    cs.textContent = '● Connected';
+    cs.style.background = 'rgba(34,197,94,0.15)';
+    cs.style.color = 'var(--ok)';
+    render(el, { health, overview, agents, skills, history, regStatus, audit, memory, model });
+    el.style.display = 'block';
+    ld.style.display = 'none';
+  } catch (e) {
+    cs.textContent = '● Disconnected';
+    cs.style.background = 'rgba(239,68,68,0.15)';
+    cs.style.color = 'var(--error)';
+    ld.innerHTML = `<span class="error-msg">Failed to connect to AgentMesh Local API at ${API}<br>${e.message}</span>`;
+  }
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderMetrics(metricsEl, reg, audit, mem, hist) {
+  const rd = reg.data || {};
+  const ad = audit.data || {};
+  const md = mem.data || {};
+  const histLen = (hist.data?.entries || []).length;
+  const lastSync = rd.last_sync || '—';
+  const shortSync = lastSync.length > 12 ? lastSync.slice(0, 12) + '…' : lastSync;
+
+  const auditCls = ad.allowed ? 'metric-ok' : 'metric-error';
+  const auditLabel = ad.allowed ? 'PASS' : 'BLOCKED';
+
+  metricsEl.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-value metric-accent">${rd.skills_count ?? '—'}</div>
+      <div class="metric-label">Skills</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value metric-ok">${rd.agents_count ?? '—'}<span style="font-size:14px;color:var(--text-dim)"> / ${rd.total_agents ?? '—'}</span></div>
+      <div class="metric-label">Agents</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="font-size:18px;">${esc(shortSync)}</div>
+      <div class="metric-label">Last Sync</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value ${auditCls}">${esc(auditLabel)}</div>
+      <div class="metric-label">Audit · ${ad.total_findings ?? 0} findings</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">${md.total_memories ?? 0}</div>
+      <div class="metric-label">Memories</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">${histLen}</div>
+      <div class="metric-label">Sync History</div>
+    </div>
+  `;
+}
+
+function renderAuditCard(audit) {
+  const d = audit.data || {};
+  const total = Math.max(d.total_findings || 0, 1);
+  const secPct = ((d.secrets || 0) / total * 100).toFixed(0);
+  const scrPct = ((d.dangerous_scripts || 0) / total * 100).toFixed(0);
+  const refPct = ((d.platform_refs || 0) / total * 100).toFixed(0);
+
+  return `
+  <div class="card">
+    <h2>🔍 Audit Summary</h2>
+    <div class="audit-bar">
+      ${d.secrets ? `<div class="audit-bar-seg secret" style="width:${secPct}%"></div>` : ''}
+      ${d.dangerous_scripts ? `<div class="audit-bar-seg script" style="width:${scrPct}%"></div>` : ''}
+      ${d.platform_refs ? `<div class="audit-bar-seg ref" style="width:${refPct}%"></div>` : ''}
+    </div>
+    <div class="audit-legend">
+      <div class="audit-legend-item">
+        <span class="audit-legend-dot" style="background:var(--error)"></span>
+        <span onclick="showRiskDetails('secrets')">Secrets: <strong>${d.secrets ?? 0}</strong></span>
+      </div>
+      <div class="audit-legend-item">
+        <span class="audit-legend-dot" style="background:var(--warn)"></span>
+        <span onclick="showRiskDetails('scripts')">Scripts: <strong>${d.dangerous_scripts ?? 0}</strong></span>
+      </div>
+      <div class="audit-legend-item">
+        <span class="audit-legend-dot" style="background:var(--info)"></span>
+        <span onclick="showRiskDetails('refs')">Platform Refs: <strong>${d.platform_refs ?? 0}</strong></span>
+      </div>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Blocked</span>
+      <span class="stat-value">${d.blocked_count ?? 0}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Warnings</span>
+      <span class="stat-value">${d.warning_count ?? 0}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Info</span>
+      <span class="stat-value">${d.info_count ?? 0}</span>
+    </div>
+    <span class="audit-badge ${d.allowed ? 'audit-badge-ok' : 'audit-badge-blocked'}">
+      ${d.allowed ? '✓ Policy Allowed' : '✗ Policy Blocked'}
+    </span>
+  </div>`;
+}
+
+function renderSyncTimeline(hist) {
+  const entries = hist.data?.entries || [];
+  if (!entries.length) {
+    return `
+    <div class="card">
+      <h2>📡 Sync History</h2>
+      <div class="empty-state">No sync operations recorded.</div>
+    </div>`;
+  }
+
+  const items = entries.slice(-10).reverse().map(h => {
+    const status = h.status || 'ok';
+    const cls = status === 'error' ? 'error' : status === 'skip' ? 'skip' : 'ok';
+    const targets = h.targets || h.target || '—';
+    const ts = h.timestamp || h.id || '—';
+    const actionCount = h.actions_count ?? '';
+    const actionLabel = actionCount ? ` · ${actionCount} action(s)` : '';
+    return `
+    <div class="timeline-item ${cls}">
+      <div class="timeline-time">${esc(ts)}</div>
+      <div class="timeline-desc">${esc(targets)} · <strong>${esc(status)}</strong>${actionLabel}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="card full-width">
+    <h2>📡 Sync History (${entries.length})</h2>
+    <div class="timeline">${items}</div>
+  </div>`;
+}
+
+// === 新增：交互功能 ===
+let currentWizardStep = 0;
+let wizardData = {};
+
+function showWizard() {
+  currentWizardStep = 0;
+  wizardData = {};
+  document.getElementById('wizard-modal').classList.add('show');
+  renderWizardStep();
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('show');
+}
+
+function renderWizardStep() {
+  const content = document.getElementById('wizard-content');
+
+  if (currentWizardStep === 0) {
+    // 步骤1：选择资产类型
+    content.innerHTML = `
+      <div class="wizard-step active">
+        <div class="wizard-progress">
+          <div class="wizard-step-indicator active"></div>
+          <div class="wizard-step-indicator"></div>
+          <div class="wizard-step-indicator"></div>
+          <div class="wizard-step-indicator"></div>
+        </div>
+        <h3>第 1 步：选择要共享的资产类型</h3>
+        <p style="color:var(--text-dim);margin-bottom:16px;font-size:14px;">选择您想共享的资产类型。您可以多选。</p>
+        <div class="form-group">
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" id="share-skills" checked>
+              <strong>Skills（技能）</strong> - 可复用的功能脚本
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="share-prompts">
+              <strong>Prompts（提示词）</strong> - 预设提示词和规则
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="share-memory">
+              <strong>Memory（记忆）</strong> - 跨 Agent 的知识库
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="action-btn" onclick="nextWizardStep()">下一步</button>
+          <button class="action-btn secondary" onclick="closeModal('wizard-modal')">取消</button>
+        </div>
+      </div>
+    `;
+  } else if (currentWizardStep === 1) {
+    // 步骤2：选择目标 Agent
+    content.innerHTML = `
+      <div class="wizard-step active">
+        <div class="wizard-progress">
+          <div class="wizard-step-indicator active"></div>
+          <div class="wizard-step-indicator active"></div>
+          <div class="wizard-step-indicator"></div>
+          <div class="wizard-step-indicator"></div>
+        </div>
+        <h3>第 2 步：选择目标 Agent</h3>
+        <p style="color:var(--text-dim);margin-bottom:16px;font-size:14px;">选择要接收共享资产的 Agent。只显示已安装且可写入的 Agent。</p>
+        <div class="form-group">
+          <div id="agent-selection" class="checkbox-group">
+            <div class="loading">正在加载 Agent 列表...</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="action-btn secondary" onclick="prevWizardStep()">上一步</button>
+          <button class="action-btn" id="next-agents-btn" onclick="nextWizardStep()" disabled>下一步</button>
+        </div>
+      </div>
+    `;
+    loadAgentsForWizard();
+  } else if (currentWizardStep === 2) {
+    // 步骤3：选择同步模式 - 使用增强版本
+    content.innerHTML = enhancedStep3();
+  } else if (currentWizardStep === 3) {
+    // 步骤4：预览计划
+    content.innerHTML = `
+      <div class="wizard-step active">
+        <div class="wizard-progress">
+          <div class="wizard-step-indicator active"></div>
+          <div class="wizard-step-indicator active"></div>
+          <div class="wizard-step-indicator active"></div>
+          <div class="wizard-step-indicator active"></div>
+        </div>
+        <h3>第 4 步：共享计划预览</h3>
+        <p style="color:var(--text-dim);margin-bottom:16px;font-size:14px;">请审查以下同步计划。所有操作都是预览，不会实际修改文件。</p>
+        <div id="plan-preview-content" class="loading">正在生成计划...</div>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="action-btn secondary" onclick="prevWizardStep()">上一步</button>
+          <button class="action-btn" id="confirm-btn" onclick="confirmPlan()" disabled>确认执行</button>
+          <button class="action-btn secondary" onclick="closeModal('wizard-modal')">关闭</button>
+        </div>
+      </div>
+    `;
+    generatePlanPreview();
+  }
+}
+
+function nextWizardStep() {
+  if (currentWizardStep === 0) {
+    // 收集资产类型选择
+    wizardData.assetTypes = [];
+    if (document.getElementById('share-skills').checked) wizardData.assetTypes.push('skills');
+    if (document.getElementById('share-prompts').checked) wizardData.assetTypes.push('prompts');
+    if (document.getElementById('share-memory').checked) wizardData.assetTypes.push('memory');
+  } else if (currentWizardStep === 1) {
+    // 收集目标 Agent 选择
+    wizardData.targets = [];
+    document.querySelectorAll('#agent-selection input:checked').forEach(cb => {
+      wizardData.targets.push(cb.value);
+    });
+  } else if (currentWizardStep === 2) {
+    // 收集同步模式选择
+    wizardData.syncMode = document.querySelector('input[name="sync-mode"]:checked').value;
+  }
+
+  currentWizardStep++;
+  renderWizardStep();
+}
+
+function prevWizardStep() {
+  currentWizardStep--;
+  renderWizardStep();
+}
+
+async function loadAgentsForWizard() {
+  try {
+    const agentsResp = await api('/agents');
+    const agents = agentsResp.data.agents.filter(a => a.installed && a.writable);
+
+    if (!agents.length) {
+      document.getElementById('agent-selection').innerHTML = 
+        '<div class="empty-state">未找到可写入的已安装 Agent。请检查您的 Agent 配置。</div>';
+      return;
+    }
+
+    const selectionEl = document.getElementById('agent-selection');
+    selectionEl.innerHTML = agents.map(agent => `
+      <label class="checkbox-item">
+        <input type="checkbox" value="${agent.name}" checked onchange="updateAgentSelection()">
+        <strong>${agent.name}</strong>
+        <br>
+        <span style="font-size:12px;color:var(--text-dim);">${agent.mode}</span>
+      </label>
+    `).join('');
+
+    updateAgentSelection(); // 立即更新按钮状态
+  } catch (e) {
+    showToast('加载 Agent 列表失败：' + e.message, 'error');
+    document.getElementById('agent-selection').innerHTML =
+      `<div class="error-msg">Failed to load agents: ${e.message}</div>`;
+  }
+}
+
+function updateAgentSelection() {
+  const selected = document.querySelectorAll('#agent-selection input:checked').length;
+  const btn = document.getElementById('next-agents-btn');
+  if (btn) {
+    btn.disabled = selected === 0;
+    btn.textContent = selected > 0 ? `下一步 (${selected} Agent)` : '请至少选择一个 Agent';
+  }
+}
+
+async function generatePlanPreview() {
+  try {
+    const planResp = await api('/plans/preview');
+    const plan = planResp.data;
+
+    const content = document.getElementById('plan-preview-content');
+    content.className = 'plan-preview';
+
+    const allowed = plan.summary.allowed;
+    const blocked = plan.summary.blocked;
+
+    content.innerHTML = `
+      <div class="plan-summary">
+        <div class="plan-stat">
+          <div class="plan-stat-label">允许操作</div>
+          <div class="plan-stat-value" style="color:var(--ok)">${allowed}</div>
+        </div>
+        <div class="plan-stat">
+          <div class="plan-stat-label">阻止操作</div>
+          <div class="plan-stat-value" style="color:var(--error)">${blocked}</div>
+        </div>
+        <div class="plan-stat">
+          <div class="plan-stat-label">警告</div>
+          <div class="plan-stat-value" style="color:var(--warn)">${plan.summary.warnings}</div>
+        </div>
+      </div>
+
+      ${plan.actions.length ? `
+        <div style="margin-top:16px;">
+          <h4>操作详情：</h4>
+          ${plan.actions.slice(0, 5).map(action => `
+            <div style="padding:8px;margin:4px 0;border-left:3px solid ${action.decision === 'allow' ? 'var(--ok)' : 'var(--error)'};background:var(--surface);">
+              <strong>${action.skill}</strong> → ${action.to}
+              ${action.blocked_reasons.length ? ` <span style="color:var(--error)">(${action.blocked_reasons.join(', ')})</span>` : ''}
+            </div>
+          `).join('')}
+          ${plan.actions.length > 5 ? `<div style="color:var(--text-dim);font-size:12px;margin-top:8px;">... 还有 ${plan.actions.length - 5} 个操作</div>` : ''}
+        </div>
+      ` : '<div style="color:var(--text-dim);">没有可执行的操作</div>'}
+    `;
+
+    // 启用确认按钮（如果有允许的操作且没有阻止的操作）
+    const confirmBtn = document.getElementById('confirm-btn');
+    confirmBtn.disabled = !(allowed > 0 && blocked === 0);
+    if (allowed > 0 && blocked === 0) {
+      confirmBtn.textContent = `确认执行 (${allowed} 个操作)`;
+    } else {
+      confirmBtn.textContent = '无法执行（存在阻止操作）';
+    }
+
+  } catch (e) {
+    document.getElementById('plan-preview-content').innerHTML =
+      `<div class="error-msg">Failed to generate plan: ${e.message}</div>`;
+  }
+}
+
+function confirmPlan() {
+  showToast('要执行同步，请使用 CLI 命令：agentmesh skills sync --to ' + wizardData.targets.join(',') + ' --apply', 'info');
+  setTimeout(() => closeModal('wizard-modal'), 1000);
+}
+
+// === Toast 通知系统 ===
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+  
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <div class="toast-message">
+      <span class="toast-icon">${icons[type]}</span>
+      <span>${esc(message)}</span>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// === 冲突处理函数 ===
+function showConflictHandler(conflicts = []) {
+  // 示例冲突数据如果没有提供
+  if (!conflicts.length) {
+    conflicts = [
+      {
+        skill: 'test-skill',
+        level: 'high',
+        conflict_type: 'content_changed',
+        description: '目标 Agent 已修改该 skill',
+        registry_version: 'v1.0',
+        target_version: 'v1.0-custom',
+        options: ['keep_registry', 'import_target', 'create_variant', 'skip']
+      }
+    ];
+  }
+  
+  document.getElementById('conflict-modal').classList.add('show');
+  const content = document.getElementById('conflict-content');
+  
+  content.innerHTML = conflicts.map((c, idx) => {
+    const levels = { high: '高风险', medium: '中等', low: '低' };
+    const options = {
+      keep_registry: '使用共享库版本（推荐）',
+      import_target: '使用当前 Agent 版本',
+      create_variant: '创建副本',
+      skip: '暂时跳过'
+    };
+    
+    return `
+      <div class="conflict-item">
+        <div class="conflict-header">${esc(c.skill)}</div>
+        <div>
+          <span class="conflict-level ${c.level}">${levels[c.level] || c.level}</span>
+        </div>
+        <div style="margin:8px 0;font-size:13px;color:var(--text-dim);">
+          ${esc(c.description)}
+        </div>
+        <div style="margin:12px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <strong>共享库版本：</strong><br>
+            <code style="font-size:11px;color:var(--text-dim);">${esc(c.registry_version)}</code>
+          </div>
+          <div>
+            <strong>当前版本：</strong><br>
+            <code style="font-size:11px;color:var(--text-dim);">${esc(c.target_version)}</code>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          ${c.options.map(opt => `
+            <button class="action-btn secondary" style="font-size:12px;padding:6px 12px;" 
+                    onclick="selectConflictOption(${idx}, '${opt}')">
+              ${options[opt] || opt}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectConflictOption(index, option) {
+  showToast(`已选择：${option}`, 'success');
+  // 在实际应用中，这里会记录用户的选择
+  setTimeout(() => closeModal('conflict-modal'), 500);
+}
+
+// === 高级模式切换 ===
+function toggleAdvancedMode() {
+  const advOptions = document.querySelector('.advanced-options');
+  if (advOptions) {
+    advOptions.classList.toggle('show');
+    showToast('高级模式已' + (advOptions.classList.contains('show') ? '启用' : '禁用'), 'info', 1500);
+  }
+}
+
+// === 改进的向导步骤 3 处理 ===
+function enhancedStep3() {
+  return `
+    <div class="wizard-step active">
+      <div class="wizard-progress">
+        <div class="wizard-step-indicator active"></div>
+        <div class="wizard-step-indicator active"></div>
+        <div class="wizard-step-indicator active"></div>
+        <div class="wizard-step-indicator"></div>
+      </div>
+      <h3>选择同步模式</h3>
+      <div class="form-group">
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="radio" name="sync-mode" value="copy" checked>
+            <div>
+              <strong>复制模式</strong>（推荐）<br>
+              <span style="font-size:12px;color:var(--text-dim);">安全复制到目标目录，每个 Agent 独立维护副本</span>
+            </div>
+          </label><br>
+          <label class="checkbox-item">
+            <input type="radio" name="sync-mode" value="symlink">
+            <div>
+              <strong>符号链接模式</strong><br>
+              <span style="font-size:12px;color:var(--text-dim);">创建链接（需要确认），节省空间但共享内容</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <details style="margin-top:16px;padding:12px;background:var(--surface);border-radius:6px;border:1px dashed var(--border);">
+        <summary style="cursor:pointer;font-weight:600;">高级选项</summary>
+        <div class="option-group" style="margin-top:12px;">
+          <h4>同步策略</h4>
+          <div class="option-item">
+            <input type="checkbox" id="skip-existing">
+            <label for="skip-existing">跳过已存在的 skills（不覆盖）</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" id="preserve-existing">
+            <label for="preserve-existing">保留现有版本（备份后覆盖）</label>
+          </div>
+        </div>
+        <div class="option-group">
+          <h4>冲突处理</h4>
+          <div class="option-item">
+            <input type="radio" name="conflict-mode" value="ask" checked>
+            <label>发生冲突时询问</label>
+          </div>
+          <div class="option-item">
+            <input type="radio" name="conflict-mode" value="auto-keep">
+            <label>自动保留共享库版本</label>
+          </div>
+          <div class="option-item">
+            <input type="radio" name="conflict-mode" value="auto-local">
+            <label>自动保留本地版本</label>
+          </div>
+        </div>
+      </details>
+
+      <div style="display:flex;gap:12px;margin-top:24px;">
+        <button class="action-btn secondary" onclick="prevWizardStep()">上一步</button>
+        <button class="action-btn" onclick="nextWizardStep()">生成计划</button>
+      </div>
+    </div>
+  `;
+}
+
+function showAssets() {
+  document.getElementById('assets-modal').classList.add('show');
+  loadAssets();
+}
+
+async function loadAssets() {
+  try {
+    const assetsResp = await api('/assets/list');
+    const assets = assetsResp.data.assets;
+
+    const content = document.getElementById('assets-content');
+    if (!assets.length) {
+      content.innerHTML = '<div class="empty-state">没有找到资产</div>';
+      return;
+    }
+
+    content.innerHTML = `
+      <div class="asset-grid">
+        ${assets.map(asset => `
+          <div class="asset-card" onclick="showAssetDetail('${asset.name}')">
+            <div class="asset-name">${esc(asset.name)}</div>
+            <div class="asset-meta">
+              <span>${asset.type}</span>
+              <span>${asset.has_manifest ? '✓' : '✗'} 清单</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    document.getElementById('assets-content').innerHTML =
+      `<div class="error-msg">Failed to load assets: ${e.message}</div>`;
+  }
+}
+
+async function showAssetDetail(assetName) {
+  document.getElementById('asset-detail-title').textContent = `资产详情: ${assetName}`;
+  document.getElementById('asset-detail-modal').classList.add('show');
+
+  const content = document.getElementById('asset-detail-content');
+  content.innerHTML = '<div class="loading">Loading asset details...</div>';
+
+  try {
+    const detailResp = await api('/assets/detail/' + encodeURIComponent(assetName));
+    const asset = detailResp.data;
+
+    content.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <strong>类型:</strong> ${asset.type}<br>
+        <strong>路径:</strong> <code>${esc(asset.path)}</code>
+      </div>
+
+      ${asset.manifest ? `
+        <div style="margin-bottom:16px;">
+          <strong>清单内容:</strong>
+          <pre style="background:var(--surface);padding:12px;border-radius:6px;margin-top:8px;max-height:200px;overflow-y:auto;font-size:12px;">${esc(asset.manifest)}</pre>
+        </div>
+      ` : '<div style="color:var(--warn);margin-bottom:16px;">⚠️ 缺少清单文件</div>'}
+
+      <div>
+        <strong>审计结果:</strong>
+        <div style="margin-top:8px;padding:12px;background:var(--surface);border-radius:6px;">
+          <div>发现问题: ${asset.audit.total_findings}</div>
+          <div style="color:${asset.audit.allowed ? 'var(--ok)' : 'var(--error)'};margin-top:4px;">
+            状态: ${asset.audit.allowed ? '✓ 允许同步' : '✗ 阻止同步'}
+          </div>
+          ${asset.audit.findings.length ? `
+            <div style="margin-top:8px;">
+              <strong>问题详情:</strong>
+              <ul style="margin-top:4px;">
+                ${asset.audit.findings.map(f => `<li style="font-size:12px;color:var(--text-dim);">${esc(f.kind)}: ${esc(f.message || f.description || 'Unknown')}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    content.innerHTML = `<div class="error-msg">Failed to load asset details: ${e.message}</div>`;
+  }
+}
+
+async function showRiskDetails(riskType) {
+  const titles = {
+    'secrets': '机密信息风险',
+    'scripts': '可执行脚本风险',
+    'refs': '平台引用风险'
+  };
+
+  const descriptions = {
+    'secrets': '发现疑似包含密钥、令牌或密码的文件。这些内容不会被同步，也不会在界面中显示原文。',
+    'scripts': '发现包含可执行脚本的文件。脚本可能读取文件、访问网络或执行系统命令。',
+    'refs': '发现包含平台特定引用或路径的文件。这些引用在不同环境中可能不适用。'
+  };
+
+  document.getElementById('risk-detail-title').textContent = titles[riskType] || '风险详情';
+  document.getElementById('risk-detail-modal').classList.add('show');
+
+  const content = document.getElementById('risk-detail-content');
+  content.innerHTML = `
+    <div style="margin-bottom:16px;">
+      <p style="color:var(--text-dim);line-height:1.5;">${descriptions[riskType] || '未知风险类型'}</p>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <h4>建议处理方式：</h4>
+      <ul style="color:var(--text-dim);line-height:1.6;margin-top:8px;">
+        ${riskType === 'secrets' ? `
+          <li>检查原 Agent 中的敏感信息</li>
+          <li>考虑使用环境变量或安全配置存储密钥</li>
+          <li>避免在共享资产中包含敏感信息</li>
+        ` : riskType === 'scripts' ? `
+          <li>确认脚本来源可信</li>
+          <li>检查脚本执行的必要性</li>
+          <li>考虑脚本的安全影响</li>
+        ` : `
+          <li>检查平台特定的路径和引用</li>
+          <li>考虑使用相对路径或配置</li>
+          <li>评估跨平台兼容性</li>
+        `}
+      </ul>
+    </div>
+
+    <div style="padding:12px;background:var(--surface);border-radius:6px;">
+      <strong>安全原则：</strong><br>
+      AgentMesh 默认阻止包含风险的资产同步。您可以：
+      <ul style="margin-top:8px;margin-left:16px;">
+        <li>修改原资产以消除风险</li>
+        <li>使用 CLI 的 <code>--allow-risks</code> 参数强制同步（不推荐）</li>
+        <li>将风险资产排除在共享计划之外</li>
+      </ul>
+    </div>
+  `;
+}
+
+function renderMemoryCard(mem) {
+  const d = mem.data || {};
+  const memories = d.memories || [];
+  const byAgent = d.by_agent || {};
+
+  if (!memories.length) {
+    return `
+    <div class="card">
+      <h2>🧠 MemoryMesh</h2>
+      <div class="empty-state">No imported memories.</div>
+    </div>`;
+  }
+
+  const agentEntries = Object.entries(byAgent).map(([name, count]) =>
+    `<span class="tag tag-mode">${esc(name)}: ${count}</span>`
+  ).join(' ');
+
+  const items = memories.slice(0, 8).map(m => `
+    <div class="mesh-item">
+      <span class="mesh-agent">${esc(m.agent)}</span> / ${esc(m.name)}
+      <div class="mesh-meta">${esc(m.format)} · ${m.size || 0} bytes</div>
+    </div>
+  `).join('');
+
+  return `
+  <div class="card">
+    <h2>🧠 MemoryMesh (${d.total_memories})</h2>
+    <div style="margin-bottom:12px;">${agentEntries}</div>
+    ${items}
+  </div>`;
+}
+
+function renderModelCard(model) {
+  const d = model.data || {};
+  const configs = d.configs || [];
+  const diffs = d.diffs || [];
+
+  if (!configs.length) {
+    return `
+    <div class="card">
+      <h2>🤖 ModelMesh</h2>
+      <div class="empty-state">No model configurations detected.</div>
+    </div>`;
+  }
+
+  const cfgItems = configs.map(c => `
+    <div class="mesh-item">
+      <span class="mesh-agent">${esc(c.agent)}</span>
+      <div class="mesh-meta">
+        model: ${esc(c.default_model || '—')}
+        ${c.provider ? ' · provider: ' + esc(c.provider) : ''}
+      </div>
+    </div>
+  `).join('');
+
+  const diffItems = diffs.length ? `
+    <div style="margin-top:12px;">
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">⚠ CONFIG DIFFS</div>
+      ${diffs.map(df => `
+        <div class="stat-row">
+          <span class="stat-label">${esc(df.agent_a)} vs ${esc(df.agent_b)} · ${esc(df.field)}</span>
+          <span class="stat-value" style="font-size:11px;">${esc(String(df.value_a))} ≠ ${esc(String(df.value_b))}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  return `
+  <div class="card">
+    <h2>🤖 ModelMesh (${d.total_configs})</h2>
+    ${cfgItems}
+    ${diffItems}
+  </div>`;
+}
+
+function render(el, d) {
+  const o = d.overview.data || {};
+  const ag = d.agents.data?.agents || [];
+  const sk = d.skills.data?.skills || [];
+  const hist = d.history;
+
+  // Metrics row
+  renderMetrics(document.getElementById('metrics-row'), d.regStatus, d.audit, d.memory, hist);
+
+  // Main grid
+  const grid = document.getElementById('main-grid');
+  grid.innerHTML = `
+  <div class="card">
+    <h2>⚙️ System Status</h2>
+    <div class="stat-row"><span class="stat-label">Registry</span><span class="stat-value">${esc(registry || '-')}</span></div>
+    <div class="stat-row"><span class="stat-label">Version</span><span class="stat-value">${esc(o.version || '-')}</span></div>
+    <div class="stat-row"><span class="stat-label">Local-first</span><span class="stat-value">${o.local_first ? '✓' : '✗'}</span></div>
+    <div class="stat-row"><span class="stat-label">Default dry-run</span><span class="stat-value">${o.default_dry_run ? '✓' : '✗'}</span></div>
+    <div class="stat-row"><span class="stat-label">HTTP Server</span><span class="stat-value">${esc(o.network?.http_server || '-')}</span></div>
+    <div class="stat-row"><span class="stat-label">Runtime Auto-Load</span><span class="stat-value">${esc(o.runtime?.auto_load || '-')}</span></div>
+  </div>
+
+  <div class="card">
+    <h2>🤖 Agents (${ag.length})</h2>
+    ${ag.map(a => `
+    <div class="agent-card">
+      <div class="agent-header">
+        <span class="dot ${a.installed ? 'dot-ok' : 'dot-no'}"></span>
+        <span class="agent-name">${esc(a.name)}</span>
+        <span class="tag tag-mode">${esc(a.mode)}</span>
+        ${a.writable ? '' : '<span class="tag tag-protected">read-only</span>'}
+      </div>
+      <div class="agent-meta">
+        ${a.installed ? 'Installed' : 'Not installed'} · ${a.capabilities?.join(', ') || 'no capabilities'}
+        ${a.safety_guards?.length ? '<br>Guards: ' + a.safety_guards.join(', ') : ''}
+      </div>
+    </div>`).join('')}
+  </div>
+
+  ${renderAuditCard(d.audit)}
+
+  <div class="card">
+    <h2>📦 Skills (${sk.length})</h2>
+    ${sk.length ? `<div class="skills-list">${sk.map(s => `<div class="skill-item">${esc(s)}</div>`).join('')}</div>`
+    : '<div class="empty-state">No skills in registry.</div>'}
+  </div>
+
+  ${renderMemoryCard(d.memory)}
+
+  ${renderModelCard(d.model)}
+
+  ${renderSyncTimeline(hist)}
+  `;
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+
+<!-- 模态框 -->
+<div id="wizard-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">一键共享向导</h2>
+      <button class="modal-close" onclick="closeModal('wizard-modal')">&times;</button>
+    </div>
+    <div id="wizard-content">
+      <!-- 向导步骤将在这里动态生成 -->
+    </div>
+  </div>
+</div>
+
+<div id="assets-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">资产库</h2>
+      <button class="modal-close" onclick="closeModal('assets-modal')">&times;</button>
+    </div>
+    <div id="assets-content">
+      <div class="loading">Loading assets...</div>
+    </div>
+  </div>
+</div>
+
+<div id="asset-detail-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="asset-detail-title">资产详情</h2>
+      <button class="modal-close" onclick="closeModal('asset-detail-modal')">&times;</button>
+    </div>
+    <div id="asset-detail-content">
+      <!-- 资产详情将在这里显示 -->
+    </div>
+  </div>
+</div>
+
+<div id="risk-detail-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="risk-detail-title">风险详情</h2>
+      <button class="modal-close" onclick="closeModal('risk-detail-modal')">&times;</button>
+    </div>
+    <div id="risk-detail-content">
+      <!-- 风险详情将在这里显示 -->
+    </div>
+  </div>
+</div>
+
+<div id="conflict-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">处理冲突</h2>
+      <button class="modal-close" onclick="closeModal('conflict-modal')">&times;</button>
+    </div>
+    <div id="conflict-content">
+      <!-- 冲突项将在这里显示 -->
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
