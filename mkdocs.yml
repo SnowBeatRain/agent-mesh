@@ -1,8 +1,8 @@
 site_name: AgentMesh 文档
 site_description: 本地优先的 AI Agent 资产互通层 — 完整文档站点
-site_url: https://agentmesh.dev
-repo_url: https://github.com/agentmesh/agentmesh
-repo_name: AgentMesh
+site_url: https://snowbeatrain.github.io/agent-mesh/
+repo_url: https://github.com/SnowBeatRain/agent-mesh
+repo_name: SnowBeatRain/agent-mesh
 edit_uri: edit/main/docs/
 
 copyright: Copyright &copy; 2026 AgentMesh Contributors
@@ -88,10 +88,8 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/agentmesh/agentmesh
+      link: https://github.com/SnowBeatRain/agent-mesh
       name: AgentMesh on GitHub
-  version:
-    provider: mike
 
 extra_css:
   - assets/stylesheets/extra.css
@@ -113,15 +111,6 @@ nav:
       - Prompt Target State: design/prompt-target-state.md
       - State Reality & Migration: design/state-reality-and-migration.md
       - Model Mesh: design/model-mesh.md
-      - Refactor Roadmap: design/refactor-roadmap.md
-      - Codebase Roadmap 审计: design/codebase-roadmap-alignment-audit.md
-      - CC Switch 架构: design/ccswitch-milestone-architecture.md
   - 规格: specs/adapter-contract-v1.md
   - 安全模型: security/local-api-dashboard-threat-model.md
-  - 审查记录:
-      - Reality Check (2026-05-03): reviews/2026-05-03-agentmesh-reality-check.md
-      - Feature Metrics 审计 (2026-04-29): reviews/2026-04-29-feature-metrics-audit.md
-  - 计划:
-      - M2 Rollback 计划: plans/m2-rollback-plan-implementation.md
-      - 路线图与版本规划: roadmap-version-plan.md
   - 贡献指南: contributing.md

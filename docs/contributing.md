@@ -7,8 +7,8 @@
 ### 克隆与安装
 
 ```bash
-git clone https://github.com/agentmesh/agentmesh.git
-cd agentmesh
+git clone https://github.com/SnowBeatRain/agent-mesh.git
+cd agent-mesh
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -e ".[dev]"
